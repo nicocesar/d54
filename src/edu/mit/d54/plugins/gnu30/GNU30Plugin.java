@@ -16,6 +16,7 @@ import edu.mit.d54.DisplayPlugin;
  *  Contributors:
  *
  *    paultag@mit.edu
+ *    nico@incocesar.com
  */
 public class GNU30Plugin extends DisplayPlugin {
 
