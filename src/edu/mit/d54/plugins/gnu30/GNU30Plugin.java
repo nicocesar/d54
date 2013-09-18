@@ -87,7 +87,7 @@ public class GNU30Plugin extends DisplayPlugin {
 			}
 		}
 		
-		if (this.lastUpdateTime + (this.secondDelay * 100) < System.currentTimeMillis()) {
+		if (this.lastUpdateTime + (this.secondDelay * 1000) < System.currentTimeMillis()) {
 			this.currentFrame = (this.currentFrame + 1) % this.frameCount;
 			this.lastUpdateTime = System.currentTimeMillis();
 		}
