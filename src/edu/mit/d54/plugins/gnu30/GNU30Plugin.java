@@ -64,7 +64,7 @@ public class GNU30Plugin extends DisplayPlugin {
 		// Graphics2D g = display.getGraphics();
 
 		// InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/gnu30.gif");
-		InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/trippy3.gif");
+		InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/GNU-Animation-1.gif");
 		ArrayList<BufferedImage> frames = null;
 		
 		try {
