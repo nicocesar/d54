@@ -32,13 +32,19 @@ import edu.mit.d54.plugins.erl30.Erl30Plugin;
 public class GNU30Plugin extends DisplayPlugin {
 
 	int currentFrame;
+	private long lastUpdateTime;
+	private double secondDelay = 1;
+	private int frameCount;
+	
 
 	public GNU30Plugin(Display2D display, double framerate) {
 		super(display, framerate);
 		this.currentFrame = 0;
+		this.lastUpdateTime = 0;
+		// this.secondDelay = 3;
 	}
 
-	public Iterable<BufferedImage> loadGifObject(InputStream is) throws IOException {
+	public ArrayList<BufferedImage> loadGifObject(InputStream is) throws IOException {
 		ImageInputStream image = ImageIO.createImageInputStream(is);
 		ImageReader ir = (ImageReader) ImageIO.getImageReadersBySuffix("gif").next();
 		ir.setInput(image, false);
@@ -48,35 +54,42 @@ public class GNU30Plugin extends DisplayPlugin {
 			BufferedImage frame = ir.read(i);
 			br.add(frame);
 		}
+		this.frameCount = br.size();
 		return br;
 	}
 
 	@Override
 	protected void loop() {
 		Display2D display = getDisplay();
-		Graphics2D g = display.getGraphics();
+		// Graphics2D g = display.getGraphics();
 
-		InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/gnu30.gif");
+		// InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/gnu30.gif");
+		InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/trippy3.gif");
+		ArrayList<BufferedImage> frames = null;
+		
 		try {
-			ArrayList<BufferedImage> frames = (ArrayList<BufferedImage>) this.loadGifObject(stream);
-			BufferedImage frame = frames.get(this.currentFrame);
-			int frameCount = frames.size();
-			
-			for (int ix = 0; ix < frame.getWidth(); ++ix) {
-				for (int iy = 0; iy < frame.getHeight(); ++iy) {					
-					int pixel = frame.getRGB(ix, iy);
-
-					int red = (pixel >> 16) & 0xFF;
-					int green = (pixel >> 8) & 0xFF;
-					int blue = pixel & 0xFF;
-
-					display.setPixelRGB(ix, iy, red, green, blue);
-				}
-			}
-			this.currentFrame = (this.currentFrame + 1) % frameCount;
+			frames = this.loadGifObject(stream);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+
+		BufferedImage frame = frames.get(this.currentFrame);
+
+		for (int ix = 0; ix < frame.getWidth(); ++ix) {
+			for (int iy = 0; iy < frame.getHeight(); ++iy) {					
+				int pixel = frame.getRGB(ix, iy);
+
+				int red = (pixel >> 16) & 0xFF;
+				int green = (pixel >> 8) & 0xFF;
+				int blue = pixel & 0xFF;
+
+				display.setPixelRGB(ix, iy, red, green, blue);
+			}
+		}
+		
+		if (this.lastUpdateTime + (this.secondDelay * 100) < System.currentTimeMillis()) {
+			this.currentFrame = (this.currentFrame + 1) % this.frameCount;
+			this.lastUpdateTime = System.currentTimeMillis();
 		}
 	}
 }
