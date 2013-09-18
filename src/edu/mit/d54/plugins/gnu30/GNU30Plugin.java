@@ -33,7 +33,7 @@ public class GNU30Plugin extends DisplayPlugin {
 
 	int currentFrame;
 	private long lastUpdateTime;
-	private double secondDelay = 1;
+	private double secondDelay = 0.1;
 	private int frameCount;
 	
 
