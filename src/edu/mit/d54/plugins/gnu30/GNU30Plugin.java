@@ -1,24 +1,16 @@
 package edu.mit.d54.plugins.gnu30;
 
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
-import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 
 import edu.mit.d54.Display2D;
 import edu.mit.d54.DisplayPlugin;
-import edu.mit.d54.plugins.erl30.Erl30Plugin;
 
 /**
  * This plugin was developed by a member of GNU strikeforce delta.
@@ -32,16 +24,25 @@ import edu.mit.d54.plugins.erl30.Erl30Plugin;
 public class GNU30Plugin extends DisplayPlugin {
 
 	int currentFrame;
+
 	private long lastUpdateTime;
 	private double secondDelay = 0.1;
 	private int frameCount;
-	
+	private GNU30Updater updater;
+	private Thread updaterThread;
+	private ArrayList<BufferedImage> frames;
+
 
 	public GNU30Plugin(Display2D display, double framerate) {
 		super(display, framerate);
-		this.currentFrame = 0;
 		this.lastUpdateTime = 0;
-		// this.secondDelay = 3;
+
+		this.updater = new GNU30Updater(this);
+		this.updaterThread = new Thread(this.updater);
+		this.updaterThread.start();
+
+		InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/GNU-Animation-1.gif");
+		this.setGifObject(stream);
 	}
 
 	public ArrayList<BufferedImage> loadGifObject(InputStream is) throws IOException {
@@ -54,42 +55,48 @@ public class GNU30Plugin extends DisplayPlugin {
 			BufferedImage frame = ir.read(i);
 			br.add(frame);
 		}
-		this.frameCount = br.size();
 		return br;
+	}
+
+	public void setGifObject(InputStream is) {
+		synchronized(this) {
+			try {
+				ArrayList<BufferedImage> localFrames = this.loadGifObject(is);
+				if (localFrames.size() == 0) {
+					System.out.println("The image sucks a whole lot");
+				} else {
+					this.frames = localFrames;
+					this.frameCount = this.frames.size();
+					this.currentFrame = 0;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
 	protected void loop() {
-		Display2D display = getDisplay();
-		// Graphics2D g = display.getGraphics();
+		synchronized(this) {
+			Display2D display = getDisplay();
+			BufferedImage frame = this.frames.get(this.currentFrame);
 
-		// InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/gnu30.gif");
-		InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/GNU-Animation-1.gif");
-		ArrayList<BufferedImage> frames = null;
-		
-		try {
-			frames = this.loadGifObject(stream);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			for (int ix = 0; ix < frame.getWidth(); ++ix) {
+				for (int iy = 0; iy < frame.getHeight(); ++iy) {					
+					int pixel = frame.getRGB(ix, iy);
 
-		BufferedImage frame = frames.get(this.currentFrame);
+					int red = (pixel >> 16) & 0xFF;
+					int green = (pixel >> 8) & 0xFF;
+					int blue = pixel & 0xFF;
 
-		for (int ix = 0; ix < frame.getWidth(); ++ix) {
-			for (int iy = 0; iy < frame.getHeight(); ++iy) {					
-				int pixel = frame.getRGB(ix, iy);
-
-				int red = (pixel >> 16) & 0xFF;
-				int green = (pixel >> 8) & 0xFF;
-				int blue = pixel & 0xFF;
-
-				display.setPixelRGB(ix, iy, red, green, blue);
+					display.setPixelRGB(ix, iy, red, green, blue);
+				}
 			}
-		}
-		
-		if (this.lastUpdateTime + (this.secondDelay * 1000) < System.currentTimeMillis()) {
-			this.currentFrame = (this.currentFrame + 1) % this.frameCount;
-			this.lastUpdateTime = System.currentTimeMillis();
+
+			if (this.lastUpdateTime + (this.secondDelay * 1000) < System.currentTimeMillis()) {
+				this.currentFrame = (this.currentFrame + 1) % this.frameCount;
+				this.lastUpdateTime = System.currentTimeMillis();
+			}
 		}
 	}
 }
