@@ -56,14 +56,6 @@ public class GNU30Plugin extends DisplayPlugin {
 		ArrayList<BufferedImage> br = new ArrayList<BufferedImage>();
 		for (int i = 0; i < frames; ++i) {
 			BufferedImage frame = ir.read(i);
-			int width = frame.getWidth();
-			int height = frame.getHeight();
-			
-			if (width > this.widthMax || height > this.heightMax) {
-				System.out.println("  Height or width restriction violated.");
-				continue;
-			}
-			
 			br.add(frame);
 		}
 		return br;
@@ -92,8 +84,11 @@ public class GNU30Plugin extends DisplayPlugin {
 			Display2D display = getDisplay();
 			BufferedImage frame = this.frames.get(this.currentFrame);
 
-			for (int ix = 0; ix < frame.getWidth(); ++ix) {
-				for (int iy = 0; iy < frame.getHeight(); ++iy) {					
+			int width = frame.getWidth() > this.widthMax ? this.widthMax : frame.getWidth();
+			int height = frame.getHeight() > this.heightMax ? this.heightMax : frame.getHeight();
+			
+			for (int ix = 0; ix < width; ++ix) {
+				for (int iy = 0; iy < height; ++iy) {					
 					int pixel = frame.getRGB(ix, iy);
 
 					int red = (pixel >> 16) & 0xFF;
