@@ -32,6 +32,9 @@ public class GNU30Plugin extends DisplayPlugin {
 	private Thread updaterThread;
 	private ArrayList<BufferedImage> frames;
 
+	private int heightMax = 17;
+	private int widthMax = 9;
+
 
 	public GNU30Plugin(Display2D display, double framerate) {
 		super(display, framerate);
@@ -53,6 +56,14 @@ public class GNU30Plugin extends DisplayPlugin {
 		ArrayList<BufferedImage> br = new ArrayList<BufferedImage>();
 		for (int i = 0; i < frames; ++i) {
 			BufferedImage frame = ir.read(i);
+			int width = frame.getWidth();
+			int height = frame.getHeight();
+			
+			if (width > this.widthMax || height > this.heightMax) {
+				System.out.println("  Height or width restriction violated.");
+				continue;
+			}
+			
 			br.add(frame);
 		}
 		return br;
