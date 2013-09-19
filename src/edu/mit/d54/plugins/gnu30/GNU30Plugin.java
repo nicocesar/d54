@@ -37,12 +37,12 @@ public class GNU30Plugin extends DisplayPlugin {
 		super(display, framerate);
 		this.lastUpdateTime = 0;
 
+		InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/GNU-Animation-1.gif");
+		this.setGifObject(stream);
+
 		this.updater = new GNU30Updater(this);
 		this.updaterThread = new Thread(this.updater);
 		this.updaterThread.start();
-
-		InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/GNU-Animation-1.gif");
-		this.setGifObject(stream);
 	}
 
 	public ArrayList<BufferedImage> loadGifObject(InputStream is) throws IOException {
