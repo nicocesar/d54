@@ -80,10 +80,9 @@ public class GNU30Updater implements Runnable {
 			
 			try {
 				Thread.sleep(this.heartbeat);
-			} catch (InterruptedException e) {}
-
-
-		
+			} catch (InterruptedException e) {
+				/* Meh. */
+			}
 		}
 	}
 }
