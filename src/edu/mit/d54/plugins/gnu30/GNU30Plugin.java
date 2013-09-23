@@ -1,8 +1,10 @@
 package edu.mit.d54.plugins.gnu30;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -27,27 +29,39 @@ public class GNU30Plugin extends DisplayPlugin {
 
 	private long lastUpdateTime;
 	private double secondDelay = 0.1;
+	private int currentGif = 0;
 	private int frameCount;
-	private GNU30Updater updater;
-	private Thread updaterThread;
 	private ArrayList<BufferedImage> frames;
+	private ArrayList<ArrayList<BufferedImage>> images;
 
 	private int heightMax = 17;
 	private int widthMax = 9;
 
 
-	public GNU30Plugin(Display2D display, double framerate) {
+	public GNU30Plugin(Display2D display, double framerate) throws IOException {
 		super(display, framerate);
 		this.lastUpdateTime = 0;
-
-		InputStream stream = GNU30Plugin.class.getResourceAsStream("/images/gnu30/GNU-Animation-1.gif");
-		this.setGifObject(stream);
-
-		this.updater = new GNU30Updater(this);
-		this.updaterThread = new Thread(this.updater);
-		this.updaterThread.start();
+		this.images = new ArrayList<ArrayList<BufferedImage>>();
+		this.loadIndex();
 	}
 
+	protected void loadIndex() throws IOException {
+		InputStream stream = GNU30Plugin.class.getResourceAsStream("/resources/gnu30/images.txt");
+		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+		String line;
+		while ( (line = br.readLine()) != null ) {
+			String path = "/images/gnu30/" + line.trim();
+			ArrayList<BufferedImage> bi = this.loadGifObject(GNU30Plugin.class.getResourceAsStream(path));
+			this.images.add(bi);
+		}
+		this.loadGif(0);
+	}
+	
+	public void loadGif(int index) {
+		this.currentGif = index;
+		this.setGifSet(this.images.get(this.currentGif));
+	}
+	
 	public ArrayList<BufferedImage> loadGifObject(InputStream is) throws IOException {
 		ImageInputStream image = ImageIO.createImageInputStream(is);
 		ImageReader ir = (ImageReader) ImageIO.getImageReadersBySuffix("gif").next();
@@ -61,19 +75,18 @@ public class GNU30Plugin extends DisplayPlugin {
 		return br;
 	}
 
-	public void setGifObject(InputStream is) {
+	public void setGifObject(InputStream is) throws IOException {
+		this.setGifSet(this.loadGifObject(is));
+	}
+	
+	public void setGifSet(ArrayList<BufferedImage> localFrames) {
 		synchronized(this) {
-			try {
-				ArrayList<BufferedImage> localFrames = this.loadGifObject(is);
-				if (localFrames.size() == 0) {
-					System.out.println("The image sucks a whole lot");
-				} else {
-					this.frames = localFrames;
-					this.frameCount = this.frames.size();
-					this.currentFrame = 0;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			if (localFrames.size() == 0) {
+				System.out.println("The image sucks a whole lot");
+			} else {
+				this.frames = localFrames;
+				this.frameCount = this.frames.size();
+				this.currentFrame = 0;
 			}
 		}
 	}
@@ -97,6 +110,16 @@ public class GNU30Plugin extends DisplayPlugin {
 
 					display.setPixelRGB(ix, iy, red, green, blue);
 				}
+			}
+			
+			if (this.currentFrame == (this.frameCount - 1)) {
+				if (this.currentGif == (this.images.size() - 1)) {
+					/* Loop! */
+					this.loadGif(0);
+				} else {
+					this.loadGif(this.currentGif + 1);
+				}
+				
 			}
 
 			if (this.lastUpdateTime + (this.secondDelay * 1000) < System.currentTimeMillis()) {
