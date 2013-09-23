@@ -28,7 +28,7 @@ public class GNU30Plugin extends DisplayPlugin {
 	int currentFrame;
 
 	private long lastUpdateTime;
-	private double secondDelay = 0.1;
+	private double secondDelay = 0.5;
 	private int currentGif = 0;
 	private int frameCount;
 	private ArrayList<BufferedImage> frames;
